@@ -298,6 +298,7 @@ isAscending = error "TODO: implement isAscending"
 data Nat = Zero | Suc Nat
   deriving Show
 
+fromNat :: Nat -> Int
 fromNat = error "TODO: implement fromNat, add a type signature yourself"
 
 -- Task A-13:
