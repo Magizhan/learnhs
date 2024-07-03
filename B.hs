@@ -33,7 +33,8 @@ import Control.Applicative ((<|>), liftA2)
 --
 
 collapse :: Either [Int] Int -> Int
-collapse = error "TODO: define collapse"
+collapse (Left a)  = sum a
+collapse (Right b) = b
 
 -- Task B-2.
 --
@@ -83,7 +84,9 @@ newtype Month = MkMonth Int
   deriving Show
 
 mkMonth :: Int -> Maybe Month
-mkMonth = error "TODO: define mkMonth"
+mkMonth a
+  |a>=1 && a<=12 = Just (MkMonth a)
+  |otherwise     = Nothing
 
 -- Task B-3.
 --
@@ -105,7 +108,8 @@ mkMonth = error "TODO: define mkMonth"
 --
 
 mapMaybe :: (a -> b) -> Maybe a -> Maybe b
-mapMaybe = error "TODO: define mapMaybe"
+mapMaybe _ Nothing = Nothing
+mapMaybe f (Just a) = Just (f a)
 
 -- Task B-4.
 --
@@ -129,7 +133,8 @@ mapMaybe = error "TODO: define mapMaybe"
 --
 
 pairMaybe :: Maybe a -> Maybe b -> Maybe (a, b)
-pairMaybe = error "TODO: define pairMaybe"
+pairMaybe (Just a) (Just b) = Just (a,b)
+pairMaybe _        _        = Nothing
 
 -- Task B-5.
 --
@@ -158,8 +163,8 @@ pairMaybe = error "TODO: define pairMaybe"
 -- Just "foobar"
 
 liftMaybe :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
-liftMaybe = error "TODO: define liftMaybe"
-
+liftMaybe f (Just a) (Just b)= Just (f a b)
+liftMaybe _ _        _       = Nothing
 -- Task B-6.
 --
 -- Reimplement 'pairMaybe' using 'liftMaybe' from the
@@ -170,8 +175,7 @@ liftMaybe = error "TODO: define liftMaybe"
 -- definition of 'pairMaybe'.
 
 pairMaybe' :: Maybe a -> Maybe b -> Maybe (a, b)
-pairMaybe' = error "TODO: define pairMaybe'"
-
+pairMaybe' a b = liftMaybe (,) a b
 -- Task B-7.
 --
 -- Define a function lookups that performs lookups in a given
@@ -202,9 +206,14 @@ pairMaybe' = error "TODO: define pairMaybe'"
 --
 
 lookups :: Eq a => [a] -> [(a, b)] -> Maybe [b]
-lookups = error "TODO: define lookups"
+lookups [] _  = Just [] 
+lookups (y:ys) t = case lookup y t of 
+  Nothing -> Nothing 
+  Just v  -> case lookups ys t of 
+    Nothing -> Nothing 
+    Just vs -> Just (v:vs)
 
--- Task B-8.
+--  Task B-8.
 --
 -- Reimplement the function 'reverse' from the slides,
 -- using the "standard design principle on lists", i.e.,
@@ -212,7 +221,8 @@ lookups = error "TODO: define lookups"
 -- function '++' in the recursive case.
 
 reverse :: [a] -> [a]
-reverse = error "TODO: define reverse"
+reverse [] = []
+reverse (y:ys) = reverse ys ++ [y]
 
 -- Task B-9.
 --
@@ -233,8 +243,8 @@ reverse = error "TODO: define reverse"
 --
 
 reverseAcc :: [a] -> [a] -> [a]
-reverseAcc = error "TODO: define reverseAcc"
-
+reverseAcc a [] = a 
+reverseAcc a (b:bs) = reverseAcc (b:a) bs
 -- Task B-10.
 --
 -- One way to look at the previous task is that the first
@@ -255,7 +265,11 @@ reverseAcc = error "TODO: define reverseAcc"
 -- Do you observe one of the two versions to be faster
 -- than the other? Why?
 --
--- PLEASE ANSWER THE QUESTION HERE
+-- reverse' is much faster than reverse. 
+-- first reverse complexity is very high as it iterates over the entire list 
+-- to get the first element in the reverse list and it does this recursively. 
+-- However in reverse' which has an accumulator, there is no full iteration of the list 
+-- everytime. 
 
 reverse' :: [a] -> [a]
 reverse' = reverseAcc []
@@ -281,7 +295,9 @@ reverse' = reverseAcc []
 --
 
 replicate :: Int -> a -> [a]
-replicate = error "TODO: define replicate"
+replicate i a 
+  | (i<=0)    = []
+  | otherwise = a : replicate (i-1) a 
 
 -- Task B-12.
 --
@@ -297,7 +313,7 @@ replicate = error "TODO: define replicate"
 --
 
 repeat :: a -> [a]
-repeat = error "TODO: define repeat"
+repeat a = a : repeat a
 
 -- Task B-13.
 --
@@ -306,7 +322,7 @@ repeat = error "TODO: define repeat"
 --
 
 replicate' :: Int -> a -> [a]
-replicate' = error "TODO: define replicate'"
+replicate' i a = take i (repeat a)
 
 -- Task B-14.
 --
@@ -362,8 +378,9 @@ tree5 :: Tree Int
 tree5 = Node (Leaf 3) (Leaf 3)
 
 mapTree :: (a -> b) -> Tree a -> Tree b
-mapTree = error "TODO: implement mapTree"
-
+mapTree f (Leaf a) = Leaf (f a)
+--mapTree f (Node (Leaf a) t) = Node (Leaf (f a)) (mapTree f t)
+mapTree f (Node t1 t2) = Node (mapTree f t1) (mapTree f t2)
 -- Task B-15.
 --
 -- Check whether two trees have the same
@@ -383,8 +400,9 @@ mapTree = error "TODO: implement mapTree"
 --
 
 sameShape :: Tree a -> Tree b -> Bool
-sameShape = error "TODO: implement sameShape'"
-
+sameShape (Leaf _) (Leaf _)= True
+sameShape (Node l1 r1) (Node l2 r2) = sameShape l1 l2 && sameShape r1 r2
+sameShape _ _ = False
 -- Task B-16.
 --
 -- Re-implement 'sameShape', but this time,
@@ -402,7 +420,7 @@ sameShape = error "TODO: implement sameShape'"
 --   () :: ()
 
 sameShape' :: Tree a -> Tree b -> Bool
-sameShape' = error "TODO: implement sameShape'"
+sameShape' t1 t2 = (mapTree (const ()) t1) == (mapTree (const ()) t2)
 
 -- Task B-17.
 --
@@ -426,8 +444,9 @@ sameShape' = error "TODO: implement sameShape'"
 --
 
 buildTree :: Int -> Tree ()
-buildTree = error "TODO: implement buildTree"
-
+buildTree i 
+  | i<=0 = Leaf ()
+  | otherwise = Node (buildTree (i-1)) (buildTree (i-1))
 -- Task B-18.
 --
 -- The following datatype represent abstract syntax trees
@@ -459,6 +478,7 @@ data Expr =
   | Add Expr Expr
   | Neg Expr
   | IfZero Expr Expr Expr
+  | Mul Expr Expr
   deriving (Eq, Show)
 
 expr1 :: Expr
@@ -467,14 +487,28 @@ expr1 = Neg (Add (Lit 3) (Lit 5))
 expr2 :: Expr
 expr2 = IfZero expr1 (Lit 1) (Lit 0)
 
+expr3 :: Expr
+expr3 = Mul expr1 expr1
+
 eval :: Expr -> Int
-eval = error "TODO: implement eval"
+eval (Lit i) = i
+eval (Add a b) = eval a + eval b 
+eval (Neg a) = - (eval a)
+eval (IfZero a b c)
+  |eval a==0 = eval b
+  |otherwise = eval c
+eval (Mul a b) = eval a * eval b
+
+
 
 prop_eval1 :: Bool
 prop_eval1 = eval expr1 == -8
 
 prop_eval2 :: Bool
 prop_eval2 = eval expr2 == 0
+
+prop_eval3 :: Bool
+prop_eval3 = eval expr3 == 64
 
 -- Task B-19.
 --
@@ -491,8 +525,11 @@ prop_eval2 = eval expr2 == 0
 --
 
 countOps :: Expr -> Int
-countOps = error "TODO: implement countOps"
-
+countOps (Lit _) = 0 
+countOps (Add a b) = 1 + countOps a + countOps b
+countOps (Neg a) = 1 + countOps a
+countOps (IfZero a b c) = 1 + countOps a + countOps b + countOps c 
+countOps (Mul a b) = 1 + countOps a + countOps b
 -- Task B-20.
 --
 -- Add a constructor 'Mul' for multiplication to
@@ -513,7 +550,9 @@ countOps = error "TODO: implement countOps"
 -- down to the right subtree and continue -- so
 -- there should be three constructors.
 
-data Path = ToBeDefined -- placeholder; replace with definition
+--data Tree a = Leaf a | Node (Tree a) (Tree a)
+
+data Path = End | L Path | R Path -- placeholder; replace with definition
   deriving (Eq, Show)
 
 -- Task B-22.
@@ -531,7 +570,10 @@ data Path = ToBeDefined -- placeholder; replace with definition
 --
 
 follow :: Path -> Tree a -> Maybe a
-follow = error "TODO: implement follow"
+follow End (Leaf a) = Just a
+follow (L p) (Node l _) = follow p l
+follow (R p) (Node _ r) = follow p r 
+follow _      _         = Nothing
 
 -- Task B-23.
 --
@@ -547,4 +589,9 @@ follow = error "TODO: implement follow"
 --
 
 search :: Eq a => a -> Tree a -> Maybe Path
-search = error "TODO: implement search"
+search a (Leaf a') = if a==a' then Just End else Nothing
+search a (Node l r) = case search a l of
+    Just l' -> Just (L l')
+    Nothing -> fmap R (search a r)
+    
+
